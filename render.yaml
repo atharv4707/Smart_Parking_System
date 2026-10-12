@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: smart-park-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-park-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false
+
+  - type: web
+    name: smart-park-dashboard
+    runtime: static
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+
+databases:
+  - name: smart-park-db
+    databaseName: smart_park
+    user: smart_park
+    plan: free
